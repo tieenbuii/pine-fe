@@ -1,7 +1,7 @@
-@import "reset";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+// @import "./reset.scss";
 @layer base {
   body {
     line-height: 1.5;
@@ -9,7 +9,7 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     font-family: "Roboto", sans-serif;
     font-size: 16px;
-    color: inherit;
+    color: inherit; 
   }
 }
 .container {
@@ -39,4 +39,8 @@ input::-moz-input-placeholder {
 .custom-checkbox input:checked + div div > svg {
   display: block;
   color: white;
+}
+
+.clock {
+  background-image: linear-gradient(to right bottom, #1dc071, #a4d96c);
 }
