@@ -1,9 +1,7 @@
-
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../components/button/Button";
-import Checkbox from "../components/checkbox/Checkbox";
 import Field from "../components/field/Field";
 import Footer from "../components/footer/Footer";
 import Header from "../components/header/Header";
@@ -12,22 +10,19 @@ import InputPasswordToggle from "../components/input/InputPasswordToggle";
 import Label from "../components/label/Label";
 import Navbar from "../components/navbar/Navbar";
 import AuthenticationPage from "./AuthenticationPage";
-import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { toast } from "react-toastify";
 import userApi from "../api/userApi";
+import { useDispatch, useSelector } from "react-redux";
+import { clearError, login } from "../redux/actions/UserActions";
 
 const schema = yup.object({
-  fullname: yup
-    .string()
-    .required("Vui lòng nhập họ tên")
-    .min(3, "Tối thiểu phải có 3 ký tự")
-    .max(30, "Vượt quá 30 ký tự cho phép"),
   email: yup
     .string()
     .email("Vui lòng nhập đúng định dạng email")
     .required("Vui lòng nhập email"),
-  password: yup
+    password: yup
     .string()
     .required("Vui lòng nhập mật khẩu")
     .min(8, "Tối thiểu 8 ký tự")
@@ -38,14 +33,9 @@ const schema = yup.object({
         message: "Bắt buộc phải có chữ hoa, chữ thường, ký tự đặc biệt, số",
       }
     ),
-  retypePassword: yup
-    .string()
-    .required("Vui lòng nhập lại mật khẩu")
-    .oneOf([yup.ref("password")], "Xác nhận mật khẩu chưa đúng"),
-  term: yup.boolean().required("Vui lòng chấp nhận các điều khoản"),
 });
 
-const SignUpPage = () => {
+const SignInPage = () => {
   const {
     handleSubmit,
     control,
@@ -53,79 +43,50 @@ const SignUpPage = () => {
     reset,
   } = useForm({
     mode: "onChange",
+    defaultValues: { email: "", password: "" },
     resolver: yupResolver(schema),
-    defaultValues: {
-      fullname: "",
-      email: "",
-      password: "",
-      retypePassword: "",
-      term: false,
-    },
   });
-
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isAuthenticated, error, user } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+      toast.success("Chào mừng bạn đến HC.VN", { pauseOnHover: false });
+      reset({
+        email: "",
+        password: "",
+      });
+      console.log(user);
+    }
+    if (error) {
+      console.log("Error:", error);
+      toast.error(error);
+      dispatch(clearError());
+    }
+  }, [dispatch, isAuthenticated, error, toast]);
 
   useEffect(() => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
-
-
-
-
-
-
-
-
-
     });
   }, []);
 
-  const handleSignUp = async (values) => {
+  const handleSignIn = async (values) => {
     if (!isValid) return;
-    const data = {
-      name: values.fullname,
-      email: values.email,
-      password: values.password,
-      passwordConfirm: values.retypePassword,
-    };
-    try {
-      const result = await userApi.register(data);
-      toast.success("Đăng ký tài khoản thành công", { pauseOnHover: false });
-      reset({
-        fullname: "",
-        email: "",
-        password: "",
-        retypePassword: "",
-        term: false,
-      });
-      navigate("/verify");
-    } catch (error) {
-      toast.error(error.message, { pauseOnHover: false });
-    }
-  };
-
-  return (
+    dispatch(login(values));
+};  return (
     <div className="bg-[#f8f8fc]">
       <Header></Header>
       <Navbar></Navbar>
       <AuthenticationPage>
-        <form autoComplete="off" onSubmit={handleSubmit(handleSignUp)}>
-          <Field>
-            <Label htmlFor="fullname">Họ tên</Label>
-            <Input
-              type="text"
-              name="fullname"
-              placeholder="Mời bạn nhập tên của bạn"
-              control={control}
-            />
-            {errors.fullname && (
-              <p className="text-red-500 text-lg font-medium">
-                {errors.fullname?.message}
-              </p>
-            )}
-          </Field>
-
+        <form
+          className="pb-6"
+          autoComplete="off"
+          onSubmit={handleSubmit(handleSignIn)}
+        >
           <Field>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -140,7 +101,6 @@ const SignUpPage = () => {
               </p>
             )}
           </Field>
-
           <Field>
             <Label htmlFor="password">Mật khẩu</Label>
             <InputPasswordToggle control={control}></InputPasswordToggle>
@@ -150,33 +110,25 @@ const SignUpPage = () => {
               </p>
             )}
           </Field>
-
-          <Field>
-            <Label htmlFor="password">Nhập lại mật khẩu</Label>
-            <InputPasswordToggle
-              control={control}
-              name="retypePassword"
-            ></InputPasswordToggle>
-            {errors.retypePassword && (
-              <p className="text-red-500 text-lg font-medium">
-                {errors.retypePassword?.message}
-              </p>
-            )}
-          </Field>
-
-          <Field>
-            <Checkbox
-              control={control}
-              text="Tôi đồng ý với các điều khoản"
-              name="term"
-            />
-            {errors.term && (
-              <p className="text-red-500 text-lg font-medium">
-                {errors.term?.message}
-              </p>
-            )}
-          </Field>
-
+          <div className="flex items-center justify-between px-44 mt-8">
+            <div className="flex items-center">
+              <span className="text-black text-xl">
+                Bạn chưa có tài khoản? &nbsp;
+              </span>
+              <Link
+                to="/sign-up"
+                className="text-xl text-[#1DC071] font-semibold"
+              >
+                Đăng ký
+              </Link>
+            </div>
+            <Link
+              to="/forgot-password"
+              className="text-xl text-[#1DC071] font-semibold"
+            >
+              Quên mật khẩu
+            </Link>
+          </div>
           <Button
             type="submit"
             isLoading={isSubmitting}
@@ -187,27 +139,11 @@ const SignUpPage = () => {
               margin: "30px auto",
             }}
           >
-            Đăng ký
+               Đăng nhập
           </Button>
         </form>
-        <Field>
-          <div className="flex items-center mx-auto pb-10">
-            {" "}
-            <span className="text-black text-xl">
-              Bạn đã có tài khoản? &nbsp;
-            </span>
-            <Link
-              to="/sign-in"
-              className="text-xl text-[#1DC071] font-semibold"
-            >
-              Đăng nhập
-            </Link>
-          </div>
-        </Field>
       </AuthenticationPage>
+
       <Footer></Footer>
     </div>
-  );
-};
-
-export default SignUpPage;
+  )};
