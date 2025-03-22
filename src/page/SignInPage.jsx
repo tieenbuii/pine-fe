@@ -3,26 +3,27 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../components/button/Button";
 import Field from "../components/field/Field";
-import Footer from "../components/footer/Footer";
-import Header from "../components/header/Header";
+
+
 import Input from "../components/input/Input";
 import InputPasswordToggle from "../components/input/InputPasswordToggle";
 import Label from "../components/label/Label";
-import Navbar from "../components/navbar/Navbar";
+
 import AuthenticationPage from "./AuthenticationPage";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "react-toastify";
-import userApi from "../api/userApi";
-import { useDispatch, useSelector } from "react-redux";
-import { clearError, login } from "../redux/actions/UserActions";
-import LoadingPage from "../components/loading/LoadingPage";
+import { useDispatch } from "react-redux";
+import { login } from "../redux/auth/userSlice";
+
+
+
 const schema = yup.object({
   email: yup
     .string()
     .email("Vui lòng nhập đúng định dạng email")
     .required("Vui lòng nhập email"),
-    password: yup
+  password: yup
     .string()
     .required("Vui lòng nhập mật khẩu")
     .min(8, "Tối thiểu 8 ký tự")
@@ -48,19 +49,18 @@ const SignInPage = () => {
   });
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isAuthenticated, error, loading } = useSelector(
-    (state) => state.login
-  );
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/");
-    }
-    if (error) {
-      toast.error(error);
-      dispatch(clearError());
-    }
-  }, [dispatch, isAuthenticated, error, toast]);
+
+
+
+
+
+
+
+
+
+
+
 
   useEffect(() => {
     window.scrollTo({
@@ -71,20 +71,24 @@ const SignInPage = () => {
 
   const handleSignIn = async (values) => {
     if (!isValid) return;
-    dispatch(login(values));
-    toast.success("Chào mừng bạn đến HC.VN", { pauseOnHover: false });
-    reset({
-      email: "",
-      password: "",
-    });
-};  return (
-  <>
-  {loading ? (
-    <LoadingPage />
-  ) : (
-    <div className="bg-[#f8f8fc]">
-      <Header></Header>
-      <Navbar></Navbar>
+    try {
+      const action = login(values);
+      const resultAction = await dispatch(action);
+      const user = unwrapResult(resultAction);
+      console.log("Login:", user);
+
+      toast.success("Chào mừng bạn đến với HC.VN", { pauseOnHover: false });
+      reset({
+        email: "",
+        password: "",
+      });
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message, { pauseOnHover: false });
+    }
+  };
+  return (
+    <div>
       <AuthenticationPage>
         <form
           className="pb-6"
@@ -105,50 +109,85 @@ const SignInPage = () => {
               </p>
             )}
           </Field>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           <Field>
-                <Label htmlFor="password">Mật khẩu</Label>
-                <InputPasswordToggle control={control}></InputPasswordToggle>
-                {errors.password && (
-                  <p className="text-red-500 text-lg font-medium">
-                    {errors.password?.message}
-                  </p>
-                )}
-              </Field>
-              <div className="flex items-center justify-between px-44 mt-8">
-                <div className="flex items-center">
-                  <span className="text-black text-xl">
-                    Bạn chưa có tài khoản? &nbsp;
-                  </span>
-                  <Link
-                    to="/sign-up"
-                    className="text-xl text-[#1DC071] font-semibold"
-                  >
-                    Đăng ký
-                  </Link>
-                </div>
-                <Link
-                  to="/forgot-password"
-                  className="text-xl text-[#1DC071] font-semibold"
-                >
-                  Quên mật khẩu
-                </Link>
-              </div>
-              <Button
-                type="submit"
-                isLoading={isSubmitting}
-                disable={isSubmitting}
-                style={{
-                  width: "100%",
-                  maxWidth: 300,
-                  margin: "30px auto",
-                }}
+            <Label htmlFor="password">Mật khẩu</Label>
+            <InputPasswordToggle control={control}></InputPasswordToggle>
+            {errors.password && (
+              <p className="text-red-500 text-lg font-medium">
+                {errors.password?.message}
+              </p>
+            )}
+          </Field>
+
+          <div className="flex items-center justify-between px-44 mt-8">
+            <div className="flex items-center">
+              <span className="text-black text-xl">
+                Bạn chưa có tài khoản? &nbsp;
+              </span>
+
+
+
+              <Link
+                to="/sign-up"
+                className="text-xl text-[#1DC071] font-semibold"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               >
-                Đăng nhập
-              </Button>
-            </form>
-          </AuthenticationPage>
-          <Footer></Footer>
-        </div>
-      )}
-    </>
-  )};
+                Đăng ký
+              </Link>
+            </div>
+
+            <Link
+              to="/forgot-password"
+              className="text-xl text-[#1DC071] font-semibold"
+            >
+              Quên mật khẩu
+            </Link>
+          </div>
+
+          <Button
+            type="submit"
+            isLoading={isSubmitting}
+            disable={isSubmitting}
+            style={{
+              width: "100%",
+              maxWidth: 300,
+              margin: "30px auto",
+            }}
+          >
+            Đăng nhập
+          </Button>
+        </form>
+      </AuthenticationPage>
+    </div>
+  );
+};
