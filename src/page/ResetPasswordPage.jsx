@@ -3,16 +3,15 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Button from "../components/button/Button";
 import Field from "../components/field/Field";
-
 import InputPasswordToggle from "../components/input/InputPasswordToggle";
 import Label from "../components/label/Label";
-
 import AuthenticationPage from "./AuthenticationPage";
 import * as yup from "yup";
-
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-
+import { useNavigate, useParams } from "react-router-dom";
+import { resetPassword } from "../redux/auth/userSlice";
+import { useDispatch } from "react-redux";
+import { unwrapResult } from "@reduxjs/toolkit";
 const schema = yup.object({
   password: yup
     .string()
@@ -44,6 +43,9 @@ const ResetPasswordPage = () => {
   });
 
   const navigate = useNavigate();
+  const params = useParams();
+  console.log(params.token);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     window.scrollTo({
@@ -52,66 +54,78 @@ const ResetPasswordPage = () => {
     });
   }, []);
 
-  const handleResetPassword = (values) => {
+  const handleResetPassword = async (values) => {
     if (!isValid) return;
-    toast.success("Mật khẩu đã cập nhật thành công");
+    const data = {
+      password: values.password,
+      passwordConfirm: values.retypePassword,
+      token: params.token,
+    };
+    try {
+      const action = resetPassword(data);
+      const resultAction = await dispatch(action);
+      const result = unwrapResult(resultAction);
+      console.log(result);
+      toast.dismiss();
+      toast.success("Mật khẩu đã cập nhật thành công", { pauseOnHover: false });
+      navigate("/");
+    } catch (error) {
+      toast.dismiss();
+      toast.error(error.message, { pauseOnHover: false });
+    }
+
     reset({
       password: "",
       retypePassword: "",
     });
-    navigate("/sign-in");
   };
 
   return (
-    <div>
-
-
-      <AuthenticationPage>
-        <form
-          autoComplete="off"
-          onSubmit={handleSubmit(handleResetPassword)}
-          className="pb-3"
+    <AuthenticationPage>
+      <form
+        autoComplete="off"
+        onSubmit={handleSubmit(handleResetPassword)}
+        className="pb-3"
+      >
+        <Field>
+          <Label htmlFor="password">Mật khẩu mới</Label>
+          <InputPasswordToggle
+            name="password"
+            control={control}
+          ></InputPasswordToggle>
+          {errors.password && (
+            <p className="text-red-500 text-base font-medium">
+              {errors.password?.message}
+            </p>
+          )}
+        </Field>
+        <Field>
+          <Label htmlFor="retypePassword">Nhập lại mật khẩu mới</Label>
+          <InputPasswordToggle
+            name="retypePassword"
+            control={control}
+          ></InputPasswordToggle>
+          {errors.retypePassword && (
+            <p className="text-red-500 text-base font-medium">
+              {errors.retypePassword?.message}
+            </p>
+          )}
+        </Field>
+        <Button
+          type="submit"
+          isLoading={isSubmitting}
+          disable={isSubmitting}
+          style={{
+            width: "100%",
+            maxWidth: 250,
+            margin: "30px auto",
+            height: "50px",
+          }}
         >
-          <Field>
-            <Label htmlFor="password">Mật khẩu mới</Label>
-            <InputPasswordToggle
-              name="password"
-              control={control}
-            ></InputPasswordToggle>
-            {errors.password && (
-              <p className="text-red-500 text-lg font-medium">
-                {errors.password?.message}
-              </p>
-            )}
-          </Field>
-          <Field>
-            <Label htmlFor="retypePassword">Nhập lại mật khẩu mới</Label>
-            <InputPasswordToggle
-              name="retypePassword"
-              control={control}
-            ></InputPasswordToggle>
-            {errors.retypePassword && (
-              <p className="text-red-500 text-lg font-medium">
-                {errors.retypePassword?.message}
-              </p>
-            )}
-          </Field>
-          <Button
-            type="submit"
-            isLoading={isSubmitting}
-            disable={isSubmitting}
-            style={{
-              width: "100%",
-              maxWidth: 300,
-              margin: "30px auto",
-            }}
-          >
-            Xác nhận
-          </Button>
-        </form>
-      </AuthenticationPage>
-
-    </div>
+          Xác nhận
+        </Button>
+      </form>
+    </AuthenticationPage>
   );
 };
 
