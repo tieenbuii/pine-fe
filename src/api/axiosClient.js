@@ -1,6 +1,6 @@
 import axios from "axios";
 const axiosClient = axios.create({
-  baseURL: "http://127.0.0.1:3000",
+  baseURL: "http://localhost:8081",
   headers: {
     "Content-Type": "application/JSON",
   },
@@ -9,6 +9,7 @@ const axiosClient = axios.create({
 axiosClient.interceptors.request.use(
   function (config) {
     // Do something before request is sent
+
     return config;
   },
   function (error) {
@@ -31,12 +32,35 @@ axiosClient.interceptors.response.use(
       "/api/v1/users/login",
       "/api/v1/users/verify",
       "/api/v1/users/forgotPassword",
+      "/api/v1/users/changeState",
+      "/api/v1/users/logout",
+      "/api/v1/users/verifyResetPass",
+      "/api/v1/users/me",
+      "/api/v1/api/v1/users/resetPassword/:token",
+      "/api/v1/users/updateMe",
+      "/api/v1/users/createAddress",
+      "/api/v1/users/me/address",
+      "/api/v1/users/deleteAddress",
+      "/api/v1/users/updateAddress",
+      "/api/v1/users/updateMyPassword",
+      "/api/v1/users/setDefaultAddress",
+      "/api/v1/products",
+      "/api/v1/reviews",
+      "/api/v1/products/:id/reviews",
+      "/api/v1/reviews/:id",
+      "/api/v1/orders",
+      "/api/v1/users/userLoginWith",
+      "/api/v1/comments",
+      "/api/v1/products/:id/comments?query",
+      "/api/v1/comments/:id",
+      "/api/v1/comments/setLike/:id",
     ];
     if (
       (URLs.includes(config.url) && status === 500) ||
       status == 400 ||
       status == 401 ||
-      status == 404
+      status == 404 ||
+      status == 403
     ) {
       throw new Error(data.message);
     }

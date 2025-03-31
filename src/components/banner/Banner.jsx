@@ -5,18 +5,18 @@ import { Navigation, Pagination, Autoplay } from "swiper";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import "swiper/css/scrollbar";
 import "swiper/css/autoplay";
 
 const Banner = () => {
   return (
-    <div className="mt-10">
-      <div className="container">
+    <div className="mt-12">
+      <div className="container xl:w-[95%] max-w-[1280px] ">
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}
           slidesPerView={1}
           navigation
-          autoplay={{ delay: 4000 }}
+          effect="fade"
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
           pagination={{ clickable: true }}
           className="w-full rounded-lg"
         >

@@ -7,7 +7,8 @@ import Label from "../label/Label";
 import Input from "../input/Input";
 import Button from "../button/Button";
 import { toast } from "react-toastify";
-import userApi from "../../api/userApi";
+import { useDispatch } from "react-redux";
+import { forgotPassword } from "../../redux/auth/userSlice";
 
 const schema = yup.object({
   email: yup
@@ -27,6 +28,8 @@ const SendMail = ({ onClick }) => {
     resolver: yupResolver(schema),
   });
 
+  const dispatch = useDispatch();
+
   const [hiddenClock, setHiddenClock] = useState(true);
   const [hiddenButton, setHiddenButton] = useState(false);
 
@@ -34,7 +37,8 @@ const SendMail = ({ onClick }) => {
     if (!isValid) return;
     try {
       const data = { email: values.email };
-      const result = await userApi.forgotPassword(data);
+      const action = forgotPassword(data);
+      const resultAction = await dispatch(action);
       setHiddenClock(false);
       setHiddenButton(true);
       if (time === 0) {
@@ -42,9 +46,9 @@ const SendMail = ({ onClick }) => {
       }
       countdownTimer();
       onClick();
-      console.log(result);
     } catch (error) {
-      toast.error(error.message);
+      toast.dismiss();
+      toast.error(error.message, { pauseOnHover: false });
     }
   };
 
@@ -74,7 +78,7 @@ const SendMail = ({ onClick }) => {
               id="email"
               name="email"
               type="text"
-              placeholder="Mời bạn nhập email"
+              placeholder="Nhập email"
               control={control}
               style={{
                 width: "530px",
@@ -89,19 +93,21 @@ const SendMail = ({ onClick }) => {
                 style={{
                   width: "150px",
                   margin: "0 10px",
+                  height: "50px",
+                  background: "#BF2929"
                 }}
               >
-                Gửi mã
+                <span className="text-base font-medium">Gửi mã</span>
               </Button>
             )}
             {!hiddenClock && (
-              <div className="clock w-[160px] py-[20px] flex items-center justify-center text-white rounded-md ">
-                <span className="text-xl font-semibold">{time}</span>
+              <div className="clock w-[100px] py-[20px] flex items-center justify-center text-white rounded-md ">
+                <span className="text-lg font-medium">{time}</span>
               </div>
             )}
           </div>
           {errors.email && (
-            <p className="text-red-500 text-lg font-medium">
+            <p className="text-red-500 text-base font-medium">
               {errors.email?.message}
             </p>
           )}

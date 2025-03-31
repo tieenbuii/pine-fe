@@ -5,6 +5,12 @@ import { useForm } from "react-hook-form";
 import Field from "../field/Field";
 import Input from "../input/Input";
 import Button from "../button/Button";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { verifyResetPassword } from "../../redux/auth/userSlice";
+import { useDispatch } from "react-redux";
+import { unwrapResult } from "@reduxjs/toolkit";
+
 const schema = yup.object({
   verify: yup
     .string()
@@ -23,8 +29,26 @@ const Verify = () => {
     resolver: yupResolver(schema),
   });
 
-  const handleVerify = (values) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleVerify = async (values) => {
     if (!isValid) return;
+    console.log(values);
+    const data = {
+      token: values.verify,
+    };
+    try {
+      const action = verifyResetPassword(data);
+      const resultAction = await dispatch(action);
+      const response = unwrapResult(resultAction);
+      console.log(response);
+      navigate(`/reset-password/${response.hashedToken}`);
+    } catch (error) {
+      toast.dismiss();
+      toast.error(error.message, { pauseOnHover: false });
+      console.log(error.message);
+    }
 
     reset({
       verify: "",
@@ -38,7 +62,7 @@ const Verify = () => {
             <Input
               name="verify"
               type="text"
-              placeholder="Mời bạn nhập mã xác nhận"
+              placeholder="Nhập mã xác nhận"
               control={control}
               style={{ width: "530px" }}
             ></Input>
@@ -49,9 +73,11 @@ const Verify = () => {
               style={{
                 width: "150px",
                 margin: "0 10px",
+                background: "#BF2929"
               }}
+              height="50px"
             >
-              Xác nhận
+              <span className="text-base font-medium">Xác nhận</span>
             </Button>
           </div>
 
